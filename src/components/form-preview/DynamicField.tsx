@@ -7,21 +7,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import type { FormField } from "@/types";
 
 interface DynamicFieldProps {
   field: FormField;
   value: string;
   onChange: (value: string) => void;
+  error?: string;
 }
 
-export function DynamicField({ field, value, onChange }: DynamicFieldProps) {
+export function DynamicField({ field, value, onChange, error }: DynamicFieldProps) {
+  const hasError = Boolean(error);
+  const errorId = `${field.id}-error`;
+  const errorBorder = "border-red-500 focus-visible:ring-red-500";
+
   const labelElement = (
-    <Label className="mb-1.5 block text-sm font-medium text-zinc-700">
+    <Label
+      htmlFor={field.id}
+      className="mb-1.5 block text-sm font-medium text-zinc-700"
+    >
       {field.label}
       {field.required && <span className="ml-0.5 text-red-500">*</span>}
     </Label>
   );
+
+  const errorMessage = hasError ? (
+    <p id={errorId} className="mt-1.5 text-xs font-medium text-red-600">
+      {error}
+    </p>
+  ) : null;
 
   switch (field.type) {
     case "text":
@@ -33,12 +48,16 @@ export function DynamicField({ field, value, onChange }: DynamicFieldProps) {
         <div>
           {labelElement}
           <Input
+            id={field.id}
             type={field.type}
             placeholder={field.placeholder}
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            required={field.required}
+            aria-invalid={hasError}
+            aria-describedby={hasError ? errorId : undefined}
+            className={cn(hasError && errorBorder)}
           />
+          {errorMessage}
         </div>
       );
 
@@ -47,12 +66,18 @@ export function DynamicField({ field, value, onChange }: DynamicFieldProps) {
         <div>
           {labelElement}
           <textarea
-            className="flex min-h-24 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+            id={field.id}
+            className={cn(
+              "flex min-h-24 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50",
+              hasError && errorBorder
+            )}
             placeholder={field.placeholder}
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            required={field.required}
+            aria-invalid={hasError}
+            aria-describedby={hasError ? errorId : undefined}
           />
+          {errorMessage}
         </div>
       );
 
@@ -61,7 +86,12 @@ export function DynamicField({ field, value, onChange }: DynamicFieldProps) {
         <div>
           {labelElement}
           <Select value={value} onValueChange={onChange}>
-            <SelectTrigger>
+            <SelectTrigger
+              id={field.id}
+              aria-invalid={hasError}
+              aria-describedby={hasError ? errorId : undefined}
+              className={cn(hasError && errorBorder)}
+            >
               <SelectValue placeholder={field.placeholder || "Select an option"} />
             </SelectTrigger>
             <SelectContent>
@@ -72,6 +102,7 @@ export function DynamicField({ field, value, onChange }: DynamicFieldProps) {
               ))}
             </SelectContent>
           </Select>
+          {errorMessage}
         </div>
       );
 
@@ -79,17 +110,26 @@ export function DynamicField({ field, value, onChange }: DynamicFieldProps) {
       return (
         <div>
           {labelElement}
-          <label className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-zinc-50">
+          <label
+            className={cn(
+              "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-zinc-50",
+              hasError && "border-red-500"
+            )}
+          >
             <input
+              id={field.id}
               type="checkbox"
               checked={value === "true"}
               onChange={(e) => onChange(String(e.target.checked))}
+              aria-invalid={hasError}
+              aria-describedby={hasError ? errorId : undefined}
               className="rounded border-zinc-300"
             />
             <span className="text-zinc-600">
               {field.placeholder || field.label}
             </span>
           </label>
+          {errorMessage}
         </div>
       );
 
@@ -97,11 +137,19 @@ export function DynamicField({ field, value, onChange }: DynamicFieldProps) {
       return (
         <div>
           {labelElement}
-          <div className="space-y-2">
+          <div
+            role="radiogroup"
+            aria-invalid={hasError}
+            aria-describedby={hasError ? errorId : undefined}
+            className="space-y-2"
+          >
             {(field.options ?? []).map((opt, i) => (
               <label
                 key={i}
-                className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-zinc-50"
+                className={cn(
+                  "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-zinc-50",
+                  hasError && "border-red-500"
+                )}
               >
                 <input
                   type="radio"
@@ -115,6 +163,7 @@ export function DynamicField({ field, value, onChange }: DynamicFieldProps) {
               </label>
             ))}
           </div>
+          {errorMessage}
         </div>
       );
 

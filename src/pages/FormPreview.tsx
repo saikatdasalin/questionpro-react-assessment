@@ -7,12 +7,34 @@ import { EmptyState } from "@/components/layout/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { FileEdit, Send, RotateCcw, CheckCircle2 } from "lucide-react";
+import { FileEdit, Send, RotateCcw, CheckCircle2, AlertCircle } from "lucide-react";
+import type { FormField } from "@/types";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateField(field: FormField, rawValue: string): string | null {
+  const value = (rawValue ?? "").trim();
+
+  if (field.required) {
+    if (field.type === "checkbox") {
+      if (rawValue !== "true") return "This field is required";
+    } else if (value === "") {
+      return "This field is required";
+    }
+  }
+
+  if (field.type === "email" && value !== "" && !EMAIL_REGEX.test(value)) {
+    return "Please enter a valid email address";
+  }
+
+  return null;
+}
 
 export function FormPreviewPage() {
   const { savedForm, loadForm } = useFormBuilderStore();
   const navigate = useNavigate();
   const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
@@ -26,26 +48,46 @@ export function FormPreviewPage() {
         defaults[field.id] = "";
       });
       setFormValues(defaults);
+      setErrors({});
       setSubmitted(false);
     }
   }, [savedForm]);
 
   function handleFieldChange(fieldId: string, value: string) {
     setFormValues((prev) => ({ ...prev, [fieldId]: value }));
+    setErrors((prev) => {
+      if (!prev[fieldId]) return prev;
+      const next = { ...prev };
+      delete next[fieldId];
+      return next;
+    });
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!savedForm) return;
+
+    const nextErrors: Record<string, string> = {};
+    savedForm.fields.forEach((field) => {
+      const error = validateField(field, formValues[field.id] ?? "");
+      if (error) nextErrors[field.id] = error;
+    });
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    setErrors({});
 
     const readableData: Record<string, string> = {};
-    savedForm?.fields.forEach((field) => {
+    savedForm.fields.forEach((field) => {
       readableData[field.label] = formValues[field.id] ?? "";
     });
 
     console.log("=== Form Submitted ===");
-    console.log("Form Name:", savedForm?.name);
+    console.log("Form Name:", savedForm.name);
     console.log("Submitted Data:", readableData);
-    console.log("Raw Data:", formValues);
     console.log("======================");
 
     setSubmitted(true);
@@ -58,6 +100,7 @@ export function FormPreviewPage() {
         defaults[field.id] = "";
       });
       setFormValues(defaults);
+      setErrors({});
       setSubmitted(false);
     }
   }
@@ -142,13 +185,31 @@ export function FormPreviewPage() {
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5 px-6 py-5">
+            <form
+              onSubmit={handleSubmit}
+              noValidate
+              className="space-y-5 px-6 py-5"
+            >
+              {Object.keys(errors).length > 0 && (
+                <div
+                  role="alert"
+                  className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                >
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>
+                    Please fix the {Object.keys(errors).length} highlighted
+                    field{Object.keys(errors).length !== 1 ? "s" : ""} below.
+                  </span>
+                </div>
+              )}
+
               {savedForm.fields.map((field) => (
                 <DynamicField
                   key={field.id}
                   field={field}
                   value={formValues[field.id] ?? ""}
                   onChange={(val) => handleFieldChange(field.id, val)}
+                  error={errors[field.id]}
                 />
               ))}
 
