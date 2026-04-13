@@ -1,5 +1,8 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -20,20 +23,19 @@ interface DynamicFieldProps {
 export function DynamicField({ field, value, onChange, error }: DynamicFieldProps) {
   const hasError = Boolean(error);
   const errorId = `${field.id}-error`;
-  const errorBorder = "border-red-500 focus-visible:ring-red-500";
 
   const labelElement = (
     <Label
       htmlFor={field.id}
-      className="mb-1.5 block text-sm font-medium text-zinc-700"
+      className="text-sm font-medium"
     >
       {field.label}
-      {field.required && <span className="ml-0.5 text-red-500">*</span>}
+      {field.required && <span className="ml-0.5 text-destructive">*</span>}
     </Label>
   );
 
   const errorMessage = hasError ? (
-    <p id={errorId} className="mt-1.5 text-xs font-medium text-red-600">
+    <p id={errorId} className="mt-1.5 text-xs font-medium text-destructive">
       {error}
     </p>
   ) : null;
@@ -45,7 +47,7 @@ export function DynamicField({ field, value, onChange, error }: DynamicFieldProp
     case "number":
     case "date":
       return (
-        <div>
+        <div className="space-y-2">
           {labelElement}
           <Input
             id={field.id}
@@ -55,7 +57,7 @@ export function DynamicField({ field, value, onChange, error }: DynamicFieldProp
             onChange={(e) => onChange(e.target.value)}
             aria-invalid={hasError}
             aria-describedby={hasError ? errorId : undefined}
-            className={cn(hasError && errorBorder)}
+            className={cn(hasError && "border-destructive focus-visible:ring-destructive")}
           />
           {errorMessage}
         </div>
@@ -63,19 +65,16 @@ export function DynamicField({ field, value, onChange, error }: DynamicFieldProp
 
     case "textarea":
       return (
-        <div>
+        <div className="space-y-2">
           {labelElement}
-          <textarea
+          <Textarea
             id={field.id}
-            className={cn(
-              "flex min-h-24 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50",
-              hasError && errorBorder
-            )}
             placeholder={field.placeholder}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             aria-invalid={hasError}
             aria-describedby={hasError ? errorId : undefined}
+            className={cn("min-h-24", hasError && "border-destructive focus-visible:ring-destructive")}
           />
           {errorMessage}
         </div>
@@ -83,14 +82,14 @@ export function DynamicField({ field, value, onChange, error }: DynamicFieldProp
 
     case "select":
       return (
-        <div>
+        <div className="space-y-2">
           {labelElement}
           <Select value={value} onValueChange={onChange}>
             <SelectTrigger
               id={field.id}
               aria-invalid={hasError}
               aria-describedby={hasError ? errorId : undefined}
-              className={cn(hasError && errorBorder)}
+              className={cn(hasError && "border-destructive focus:ring-destructive")}
             >
               <SelectValue placeholder={field.placeholder || "Select an option"} />
             </SelectTrigger>
@@ -108,61 +107,55 @@ export function DynamicField({ field, value, onChange, error }: DynamicFieldProp
 
     case "checkbox":
       return (
-        <div>
+        <div className="space-y-2">
           {labelElement}
-          <label
+          <div
             className={cn(
-              "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-zinc-50",
-              hasError && "border-red-500"
+              "flex items-center gap-3 rounded-lg border p-4 transition-colors hover:bg-muted/50",
+              hasError && "border-destructive"
             )}
           >
-            <input
-              id={field.id}
-              type="checkbox"
+            <Checkbox
+              id={`${field.id}-check`}
               checked={value === "true"}
-              onChange={(e) => onChange(String(e.target.checked))}
+              onCheckedChange={(checked) => onChange(String(checked))}
               aria-invalid={hasError}
               aria-describedby={hasError ? errorId : undefined}
-              className="rounded border-zinc-300"
             />
-            <span className="text-zinc-600">
+            <Label htmlFor={`${field.id}-check`} className="cursor-pointer text-sm font-normal">
               {field.placeholder || field.label}
-            </span>
-          </label>
+            </Label>
+          </div>
           {errorMessage}
         </div>
       );
 
     case "radio":
       return (
-        <div>
+        <div className="space-y-2">
           {labelElement}
-          <div
-            role="radiogroup"
+          <RadioGroup
+            value={value}
+            onValueChange={onChange}
             aria-invalid={hasError}
             aria-describedby={hasError ? errorId : undefined}
-            className="space-y-2"
           >
             {(field.options ?? []).map((opt, i) => (
-              <label
+              <div
                 key={i}
                 className={cn(
-                  "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-zinc-50",
-                  hasError && "border-red-500"
+                  "flex items-center gap-3 rounded-lg border p-4 transition-colors hover:bg-muted/50",
+                  hasError && "border-destructive",
+                  value === opt && "border-primary bg-primary/5"
                 )}
               >
-                <input
-                  type="radio"
-                  name={field.id}
-                  value={opt}
-                  checked={value === opt}
-                  onChange={(e) => onChange(e.target.value)}
-                  className="border-zinc-300"
-                />
-                <span className="text-zinc-600">{opt || `Option ${i + 1}`}</span>
-              </label>
+                <RadioGroupItem value={opt} id={`${field.id}-${i}`} />
+                <Label htmlFor={`${field.id}-${i}`} className="cursor-pointer text-sm font-normal">
+                  {opt || `Option ${i + 1}`}
+                </Label>
+              </div>
             ))}
-          </div>
+          </RadioGroup>
           {errorMessage}
         </div>
       );

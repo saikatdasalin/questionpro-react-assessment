@@ -30,19 +30,20 @@ export function TodoPagination() {
   const endItem = Math.min(currentPage * pageSize, totalItems);
 
   return (
-    <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-      <div className="flex items-center gap-2 text-sm text-zinc-500">
+    <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>
-          Showing {startItem}–{endItem} of {totalItems} todos
+          Showing <span className="font-medium text-foreground">{startItem}–{endItem}</span> of{" "}
+          <span className="font-medium text-foreground">{totalItems}</span> todos
         </span>
-        <span className="text-zinc-300">|</span>
+        <span className="text-border">|</span>
         <div className="flex items-center gap-1.5">
           <span>Rows:</span>
           <Select
             value={String(pageSize)}
             onValueChange={(v) => setPageSize(Number(v))}
           >
-            <SelectTrigger className="h-8 w-16">
+            <SelectTrigger className="h-8 w-[70px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -76,10 +77,10 @@ export function TodoPagination() {
           <ChevronLeft className="h-4 w-4" />
         </Button>
 
-        <div className="flex items-center gap-1 px-2">
+        <div className="flex items-center gap-1 px-1">
           {generatePageNumbers(currentPage, totalPages).map((page, i) =>
             page === "..." ? (
-              <span key={`ellipsis-${i}`} className="px-1 text-sm text-zinc-400">
+              <span key={`ellipsis-${i}`} className="px-2 text-sm text-muted-foreground">
                 ...
               </span>
             ) : (

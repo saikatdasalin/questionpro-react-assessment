@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Separator } from "@/components/ui/separator";
 
 interface PageHeaderProps {
   title: string;
@@ -8,16 +9,19 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, actions }: PageHeaderProps) {
   return (
-    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-          {title}
-        </h1>
-        {description && (
-          <p className="mt-1 text-sm text-zinc-500">{description}</p>
-        )}
+    <div className="space-y-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">
+            {title}
+          </h1>
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
+        </div>
+        {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      <Separator />
     </div>
   );
 }

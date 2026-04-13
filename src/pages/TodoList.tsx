@@ -5,8 +5,9 @@ import { TodoTable } from "@/components/todo/TodoTable";
 import { TodoPagination } from "@/components/todo/TodoPagination";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { EmptyState } from "@/components/layout/EmptyState";
-import { Loader2, AlertCircle, ListChecks } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Loader2, AlertCircle, ListChecks } from "lucide-react";
 
 export function TodoListPage() {
   useFetchTodos();
@@ -15,34 +16,35 @@ export function TodoListPage() {
   const filteredTodos = getFilteredTodos();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <PageHeader
         title="Todo List"
         description="Browse and filter todos from JSONPlaceholder API"
       />
 
       {error && (
-        <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          <span>{error}</span>
-          <Button
-            variant="outline"
-            size="sm"
-            className="ml-auto"
-            onClick={() => {
-              setError(null);
-              window.location.reload();
-            }}
-          >
-            Retry
-          </Button>
-        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>{error}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setError(null);
+                window.location.reload();
+              }}
+            >
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
       )}
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-24">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          <span className="ml-3 text-sm text-zinc-500">Loading todos...</span>
+        <div className="flex flex-col items-center justify-center py-24">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="mt-3 text-sm text-muted-foreground">Loading todos...</span>
         </div>
       ) : (
         <>
@@ -55,10 +57,10 @@ export function TodoListPage() {
               description="Try adjusting your filters or search query to find what you're looking for."
             />
           ) : (
-            <>
+            <div className="space-y-4">
               <TodoTable />
               <TodoPagination />
-            </>
+            </div>
           )}
         </>
       )}

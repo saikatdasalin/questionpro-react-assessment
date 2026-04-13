@@ -2,6 +2,8 @@ import { useFormBuilderStore } from "@/stores/useFormBuilderStore";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -9,7 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash2, GripVertical, Plus, X } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Trash2, ChevronUp, ChevronDown, Plus, X, GripVertical } from "lucide-react";
 import type { FormField, FieldType } from "@/types";
 
 const FIELD_TYPES: { value: FieldType; label: string }[] = [
@@ -54,151 +61,182 @@ export function FieldEditor({ field, index, totalFields }: FieldEditorProps) {
   }
 
   return (
-    <div className="group relative rounded-lg border bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col gap-0.5">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5 cursor-grab text-zinc-300 hover:text-zinc-500"
-              onClick={() => {
-                if (index > 0) moveField(index, index - 1);
-              }}
-              disabled={index === 0}
-            >
-              <GripVertical className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5 cursor-grab text-zinc-300 hover:text-zinc-500"
-              onClick={() => {
-                if (index < totalFields - 1) moveField(index, index + 1);
-              }}
-              disabled={index >= totalFields - 1}
-            >
-              <GripVertical className="h-3.5 w-3.5" />
-            </Button>
+    <Card className="transition-shadow hover:shadow-md">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                    onClick={() => { if (index > 0) moveField(index, index - 1); }}
+                    disabled={index === 0}
+                  >
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Move up</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                    onClick={() => { if (index < totalFields - 1) moveField(index, index + 1); }}
+                    disabled={index >= totalFields - 1}
+                  >
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Move down</TooltipContent>
+              </Tooltip>
+            </div>
+            <GripVertical className="h-4 w-4 text-muted-foreground/50" />
+            <Badge index={index} />
           </div>
-          <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500">
-            Field {index + 1}
-          </span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => removeField(field.id)}
+                disabled={totalFields <= 1}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Remove field</TooltipContent>
+          </Tooltip>
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-zinc-400 hover:text-red-500"
-          onClick={() => removeField(field.id)}
-          disabled={totalFields <= 1}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
+      </CardHeader>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <Label className="mb-1.5 text-xs text-zinc-500">Field Label / Name</Label>
-          <Input
-            placeholder="e.g., User Name"
-            value={field.label}
-            onChange={(e) => updateField(field.id, { label: e.target.value })}
-          />
-        </div>
-
-        <div>
-          <Label className="mb-1.5 text-xs text-zinc-500">Input Type</Label>
-          <Select
-            value={field.type}
-            onValueChange={(value) => {
-              const newType = value as FieldType;
-              const updates: Partial<FormField> = { type: newType };
-              if (NEEDS_OPTIONS.includes(newType) && (!field.options || field.options.length === 0)) {
-                updates.options = ["Option 1", "Option 2"];
-              }
-              updateField(field.id, updates);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {FIELD_TYPES.map((ft) => (
-                <SelectItem key={ft.value} value={ft.value}>
-                  {ft.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label className="mb-1.5 text-xs text-zinc-500">Placeholder</Label>
-          <Input
-            placeholder="e.g., Enter your name"
-            value={field.placeholder ?? ""}
-            onChange={(e) =>
-              updateField(field.id, { placeholder: e.target.value })
-            }
-          />
-        </div>
-
-        <div className="flex items-end">
-          <label className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors hover:bg-zinc-50">
-            <input
-              type="checkbox"
-              checked={field.required}
-              onChange={(e) =>
-                updateField(field.id, { required: e.target.checked })
-              }
-              className="rounded border-zinc-300"
-            />
-            <span className="text-zinc-600">Required field</span>
-          </label>
-        </div>
-      </div>
-
-      {showOptions && (
-        <div className="mt-3 rounded-md border border-dashed border-zinc-200 bg-zinc-50/50 p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <Label className="text-xs text-zinc-500">Options</Label>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs"
-              onClick={handleAddOption}
-            >
-              <Plus className="mr-1 h-3 w-3" />
-              Add Option
-            </Button>
-          </div>
+      <CardContent className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            {(field.options ?? []).map((opt, optIdx) => (
-              <div key={optIdx} className="flex items-center gap-2">
-                <Input
-                  value={opt}
-                  onChange={(e) => handleUpdateOption(optIdx, e.target.value)}
-                  placeholder={`Option ${optIdx + 1}`}
-                  className="h-8 text-sm"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0 text-zinc-400 hover:text-red-500"
-                  onClick={() => handleRemoveOption(optIdx)}
-                >
-                  <X className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            ))}
+            <Label>Field Label / Name</Label>
+            <Input
+              placeholder="e.g., User Name"
+              value={field.label}
+              onChange={(e) => updateField(field.id, { label: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Input Type</Label>
+            <Select
+              value={field.type}
+              onValueChange={(value) => {
+                const newType = value as FieldType;
+                const updates: Partial<FormField> = { type: newType };
+                if (NEEDS_OPTIONS.includes(newType) && (!field.options || field.options.length === 0)) {
+                  updates.options = ["Option 1", "Option 2"];
+                }
+                updateField(field.id, updates);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FIELD_TYPES.map((ft) => (
+                  <SelectItem key={ft.value} value={ft.value}>
+                    {ft.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Placeholder</Label>
+            <Input
+              placeholder="e.g., Enter your name"
+              value={field.placeholder ?? ""}
+              onChange={(e) =>
+                updateField(field.id, { placeholder: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="flex items-end">
+            <div className="flex items-center gap-3 rounded-lg border px-4 py-2.5">
+              <Switch
+                id={`required-${field.id}`}
+                checked={field.required}
+                onCheckedChange={(checked) =>
+                  updateField(field.id, { required: checked as boolean })
+                }
+              />
+              <Label htmlFor={`required-${field.id}`} className="cursor-pointer text-sm">
+                Required field
+              </Label>
+            </div>
           </div>
         </div>
-      )}
-    </div>
+
+        {showOptions && (
+          <div className="rounded-lg border border-dashed bg-muted/30 p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Options</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1 text-xs"
+                onClick={handleAddOption}
+              >
+                <Plus className="h-3 w-3" />
+                Add Option
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {(field.options ?? []).map((opt, optIdx) => (
+                <div key={optIdx} className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
+                    {optIdx + 1}
+                  </span>
+                  <Input
+                    value={opt}
+                    onChange={(e) => handleUpdateOption(optIdx, e.target.value)}
+                    placeholder={`Option ${optIdx + 1}`}
+                    className="h-8 text-sm"
+                  />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => handleRemoveOption(optIdx)}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Remove option</TooltipContent>
+                  </Tooltip>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function Badge({ index }: { index: number }) {
+  return (
+    <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">
+      Field {index + 1}
+    </span>
   );
 }

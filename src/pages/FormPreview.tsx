@@ -7,6 +7,8 @@ import { EmptyState } from "@/components/layout/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileEdit, Send, RotateCcw, CheckCircle2, AlertCircle } from "lucide-react";
 import type { FormField } from "@/types";
 
@@ -107,7 +109,7 @@ export function FormPreviewPage() {
 
   if (!savedForm) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         <PageHeader
           title="Form Preview"
           description="Preview and submit your saved form"
@@ -117,8 +119,8 @@ export function FormPreviewPage() {
           title="No form saved yet"
           description="Go to the Form Builder page to create and save a form first."
           action={
-            <Button onClick={() => navigate("/form-builder")}>
-              <FileEdit className="mr-1.5 h-4 w-4" />
+            <Button onClick={() => navigate("/form-builder")} className="gap-1.5">
+              <FileEdit className="h-4 w-4" />
               Go to Form Builder
             </Button>
           }
@@ -128,7 +130,7 @@ export function FormPreviewPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <PageHeader
         title="Form Preview"
         description="Fill out and submit the form below"
@@ -137,104 +139,101 @@ export function FormPreviewPage() {
             variant="outline"
             size="sm"
             onClick={() => navigate("/form-builder")}
+            className="gap-1.5"
           >
-            <FileEdit className="mr-1.5 h-3.5 w-3.5" />
+            <FileEdit className="h-3.5 w-3.5" />
             Edit Form
           </Button>
         }
       />
 
       <div className="mx-auto max-w-2xl">
-        <div className="rounded-lg border bg-white shadow-sm">
-          <div className="border-b bg-zinc-50/80 px-6 py-4">
-            <h2 className="text-lg font-semibold text-zinc-900">
-              {savedForm.name}
-            </h2>
-            <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
-              <Badge variant="outline" className="text-xs">
+        <Card>
+          <CardHeader className="border-b bg-muted/30">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <CardTitle>{savedForm.name}</CardTitle>
+                <CardDescription>
+                  Last updated: {new Date(savedForm.updatedAt).toLocaleDateString()}
+                </CardDescription>
+              </div>
+              <Badge variant="secondary">
                 {savedForm.fields.length} field
                 {savedForm.fields.length !== 1 ? "s" : ""}
               </Badge>
-              <span>
-                Last updated:{" "}
-                {new Date(savedForm.updatedAt).toLocaleDateString()}
-              </span>
             </div>
-          </div>
+          </CardHeader>
 
           {submitted ? (
-            <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-              <div className="mb-4 rounded-full bg-emerald-100 p-3">
-                <CheckCircle2 className="h-8 w-8 text-emerald-600" />
+            <CardContent className="flex flex-col items-center justify-center px-6 py-16 text-center">
+              <div className="mb-4 rounded-full bg-emerald-100 p-4 dark:bg-emerald-950">
+                <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h3 className="mb-1 text-lg font-semibold text-zinc-900">
+              <h3 className="mb-1 text-lg font-semibold">
                 Form Submitted!
               </h3>
-              <p className="mb-4 text-sm text-zinc-500">
+              <p className="mb-6 text-sm text-muted-foreground">
                 Check the browser console to view the submitted data.
               </p>
               <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={handleReset}>
-                  <RotateCcw className="mr-1.5 h-4 w-4" />
+                <Button variant="outline" onClick={handleReset} className="gap-1.5">
+                  <RotateCcw className="h-4 w-4" />
                   Fill Again
                 </Button>
-                <Button onClick={() => navigate("/form-builder")}>
-                  <FileEdit className="mr-1.5 h-4 w-4" />
+                <Button onClick={() => navigate("/form-builder")} className="gap-1.5">
+                  <FileEdit className="h-4 w-4" />
                   Edit Form
                 </Button>
               </div>
-            </div>
+            </CardContent>
           ) : (
-            <form
-              onSubmit={handleSubmit}
-              noValidate
-              className="space-y-5 px-6 py-5"
-            >
-              {Object.keys(errors).length > 0 && (
-                <div
-                  role="alert"
-                  className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-                >
-                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>
-                    Please fix the {Object.keys(errors).length} highlighted
-                    field{Object.keys(errors).length !== 1 ? "s" : ""} below.
-                  </span>
+            <CardContent className="pt-6">
+              <form
+                onSubmit={handleSubmit}
+                noValidate
+                className="space-y-6"
+              >
+                {Object.keys(errors).length > 0 && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Please fix the {Object.keys(errors).length} highlighted
+                      field{Object.keys(errors).length !== 1 ? "s" : ""} below.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {savedForm.fields.map((field) => (
+                  <DynamicField
+                    key={field.id}
+                    field={field}
+                    value={formValues[field.id] ?? ""}
+                    onChange={(val) => handleFieldChange(field.id, val)}
+                    error={errors[field.id]}
+                  />
+                ))}
+
+                <Separator />
+
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleReset}
+                    className="gap-1.5"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Reset
+                  </Button>
+                  <Button type="submit" className="gap-1.5">
+                    <Send className="h-4 w-4" />
+                    Submit
+                  </Button>
                 </div>
-              )}
-
-              {savedForm.fields.map((field) => (
-                <DynamicField
-                  key={field.id}
-                  field={field}
-                  value={formValues[field.id] ?? ""}
-                  onChange={(val) => handleFieldChange(field.id, val)}
-                  error={errors[field.id]}
-                />
-              ))}
-
-              <Separator />
-
-              <div className="flex items-center justify-end gap-2 pb-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleReset}
-                >
-                  <RotateCcw className="mr-1.5 h-4 w-4" />
-                  Reset
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-blue-600 text-white hover:bg-blue-700"
-                >
-                  <Send className="mr-1.5 h-4 w-4" />
-                  Submit
-                </Button>
-              </div>
-            </form>
+              </form>
+            </CardContent>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );
