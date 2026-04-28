@@ -25,7 +25,7 @@ export function AdminHeader({ onMobileMenuOpen }: AdminHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-zinc-50 px-4 dark:bg-black sm:px-6">
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-4 bg-zinc-50 px-4 dark:bg-black sm:px-6">
       {/* Mobile menu button */}
       <Button
         variant="ghost"
