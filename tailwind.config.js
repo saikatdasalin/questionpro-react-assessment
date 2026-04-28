@@ -38,6 +38,7 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        chrome: "hsl(var(--chrome))",
       },
       borderRadius: {
         lg: "var(--radius)",

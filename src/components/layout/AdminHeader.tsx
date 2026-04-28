@@ -1,8 +1,9 @@
 import { useLocation } from "react-router-dom";
-import { Menu, Search, Bell } from "lucide-react";
+import { Menu, Search, Bell, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { useThemeStore } from "@/stores/useThemeStore";
 
 const pageTitles: Record<string, { title: string; breadcrumb: string }> = {
   "/todos": { title: "Todo List", breadcrumb: "Todos" },
@@ -16,13 +17,15 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ onMobileMenuOpen }: AdminHeaderProps) {
   const location = useLocation();
+  const theme = useThemeStore((s) => s.theme);
+  const toggleTheme = useThemeStore((s) => s.toggleTheme);
   const pageInfo = pageTitles[location.pathname] ?? {
     title: "Dashboard",
     breadcrumb: "Home",
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:px-6">
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-zinc-50 px-4 dark:bg-black sm:px-6">
       {/* Mobile menu button */}
       <Button
         variant="ghost"
@@ -55,6 +58,21 @@ export function AdminHeader({ onMobileMenuOpen }: AdminHeaderProps) {
           />
         </div>
       </div>
+
+      {/* Theme toggle */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggleTheme}
+        aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      >
+        {theme === "dark" ? (
+          <Sun className="h-4 w-4" />
+        ) : (
+          <Moon className="h-4 w-4" />
+        )}
+        <span className="sr-only">Toggle theme</span>
+      </Button>
 
       {/* Notifications */}
       <Button variant="ghost" size="icon" className="relative">
